@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+    	<th:block th:include="fragments/header :: header"></th:block>
+        <title>Spring Security Example</title>
+    </head>
+    <body>
+        <h1>Aces PM</h1>
+        <div class="row">
+	        <div class="col-sm-6">
+	        	<div id="tree"></div>
+	        </div>
+	       	<div id="rhs" class="col-sm-6">
+	        </div>
+	    </div>
+    </body>
+    
+<script>
+	$.ajax({
+        type: 'GET',
+        url: 'roots',
+        dataType: "json"
+    })
+    .done(function (response) {
+    	
+    	var tree = $('#tree');
+    	tree.treeview({data: response, levels: 1});
+    	
+    	function getCookie(cname) {
+    	    var name = cname + "=";
+    	    var ca = document.cookie.split(';');
+    	    for(var i = 0; ca.length > i; i++) {
+    	        var c = ca[i];
+    	        while (c.charAt(0)==' ') {
+    	            c = c.substring(1);
+    	        }
+    	        if (c.indexOf(name) == 0) {
+    	            return c.substring(name.length,c.length);
+    	        }
+    	    }
+    	    return "";
+    	}
+    	
+    	try {
+    		getCookie('expanded').split(',').map(Number).forEach(function(nodeId) {
+    			tree.treeview('expandNode', nodeId);
+    		});
+    	}
+    	catch(err) {
+    	    //No cookie, who cares
+    	}
+    	
+    	function recordExpanded() {
+    		var expanded = '';
+    		tree.treeview('getExpanded', 0).forEach(function(node) {
+    			if(expanded.length>0){
+    				expanded+=',';
+    			}
+    			expanded+=node.nodeId;
+    			console.log(expanded);
+    		});
+    		document.cookie = 'expanded='+expanded;
+    	}
+    	
+    	tree.on('nodeExpanded', function(event, node) {
+    		 recordExpanded();
+    	});
+    	
+    	tree.on('nodeCollapsed', function(event, node) {
+   		 recordExpanded();
+   		});
+    	
+    	tree.on('nodeSelected', function(event, data) {
+    		$.ajax({
+    	        type: 'GET',
+    	        url: 'elementDetails/'+data.elementId,
+    	        dataType: "html"
+    	    })
+    	    .done(function (html) {
+    	    	$( "#rhs" ).html( html );
+    	    }).fail(function( jqXHR, textStatus, errorThrown ) {
+    	    	console.log('error');
+    	    });
+    	});
+    })
+</script>
+</html>
