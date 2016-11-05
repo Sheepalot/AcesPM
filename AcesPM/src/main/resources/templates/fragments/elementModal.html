@@ -1,0 +1,22 @@
+<div class="modal fade" id="elementModal" role="dialog" th:fragment="elementModal">
+    <div class="modal-dialog">
+	    <form th:action="@{/editDetails}" th:object="${element}" method="post">
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <button type="button" class="close" data-dismiss="modal">&times;</button>
+	          <h4 class="modal-title">Modal Header</h4>
+	        </div>
+	        <div class="modal-body">
+	          <p>
+	          	<input type="text" th:value="*{title}" th:field="*{title}"/>
+	          	<input type="hidden" th:value="*{id}" th:field="*{id}"/>
+	          </p>
+	        </div>
+	        <div class="modal-footer">
+	        	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+       			<button type="submit" class="btn btn-primary">Save changes</button>
+	        </div>
+	      </div>
+	    </form>
+    </div>
+</div>

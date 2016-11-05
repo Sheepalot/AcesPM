@@ -46,22 +46,16 @@ public class WorkflowController {
 		m.addAttribute("element", workflowService.findElementById(elementId));
         return "fragments/elementDetails";
     }
+
+	@RequestMapping(value={"/elementDetailsModal/{elementId}"})
+    public String elementDetailsModal(Model m, @PathVariable int elementId) {
+		m.addAttribute("element", workflowService.findElementById(elementId));
+        return "fragments/elementModal";
+    }
 	
 	@RequestMapping(value={"/editDetails"}, method=RequestMethod.POST)
     public String editDetails(@Valid @ModelAttribute("element")WorkflowElement edited, BindingResult result, ModelMap model) {
 		workflowService.save(edited);
 		return "redirect:/home";
     }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
