@@ -1,6 +1,6 @@
 <div class="modal fade" id="elementModal" role="dialog" th:fragment="elementModal">
     <div class="modal-dialog">
-	    <form th:action="@{/editDetails}" th:object="${element}" method="post">
+	    <form th:action="${saveURL}" th:object="${element}" method="post">
 	      <div class="modal-content">
 	        <div class="modal-header">
 	          <button type="button" class="close" data-dismiss="modal">&times;</button>

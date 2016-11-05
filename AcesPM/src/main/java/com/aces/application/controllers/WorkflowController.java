@@ -50,6 +50,16 @@ public class WorkflowController {
 	@RequestMapping(value={"/elementDetailsModal/{elementId}"})
     public String elementDetailsModal(Model m, @PathVariable int elementId) {
 		m.addAttribute("element", workflowService.findElementById(elementId));
+		m.addAttribute("saveURL", "/editDetails");
+        return "fragments/elementModal";
+    }
+	
+	@RequestMapping(value={"/newElementModal/{parentId}"})
+    public String newElementModal(Model m, @PathVariable int parentId) {	
+		WorkflowElement newElement = new WorkflowElement();
+		newElement.parent = workflowService.findElementById(parentId);
+		m.addAttribute("element", newElement);
+		m.addAttribute("saveURL", "/editDetails");
         return "fragments/elementModal";
     }
 	

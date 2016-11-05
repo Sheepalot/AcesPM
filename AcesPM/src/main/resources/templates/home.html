@@ -19,8 +19,19 @@
 	$(function() {
         $.contextMenu({
             selector: '.list-group-item', 
-            callback: function(key, options) {
-                console.log($(this).data('elementid')); 
+            callback: function(key, options) {  
+                $.ajax({
+			        type: 'GET',
+			        url: 'newElementModal/'+$(this).data('elementid'),
+			        dataType: "html"
+			    })
+			    .done(function (html) {
+			    	$( "#modalContent" ).html( html );
+			    	$("#elementModal").modal();
+			    }).fail(function( jqXHR, textStatus, errorThrown ) {
+			    	console.log('error');
+			    });
+                
             },
             items: {
             	"new": {name: "New", icon: "edit"},
