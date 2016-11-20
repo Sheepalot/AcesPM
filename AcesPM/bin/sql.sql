@@ -33,3 +33,19 @@ ADD CONSTRAINT `parent_key`
   REFERENCES `acespm`.`workflow_element` (`id`)
   ON DELETE CASCADE
   ON UPDATE NO ACTION;
+
+CREATE TABLE `response_set` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `resp_type` varchar(4) NOT NULL,
+  `options` TEXT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `response_link` (
+  `elem_id` int(11) NOT NULL,
+  `resp_id` int(11) NOT NULL,
+  PRIMARY KEY (`elem_id`,`resp_id`),
+  KEY `fk_resp_idx` (`resp_id`),
+  CONSTRAINT `fk_elem` FOREIGN KEY (`elem_id`) REFERENCES `workflow_element` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `fk_resp` FOREIGN KEY (`resp_id`) REFERENCES `response_set` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
