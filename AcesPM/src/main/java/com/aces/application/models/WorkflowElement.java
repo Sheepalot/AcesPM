@@ -64,4 +64,12 @@ public class WorkflowElement {
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	public Collection<ResponseSet> getResponseSets(){
+		return responseSets;
+	}
+	
+	public void setResponseSets(Collection<ResponseSet> responseSets){
+		this.responseSets = responseSets;
+	}
 }

@@ -1,4 +1,4 @@
-<div class="modal fade" id="elementDetailsModal" role="dialog" th:fragment="elementModal">
+<div class="modal fade" id="addResponseModal" role="dialog" th:fragment="addResponseModal">
     <div class="modal-dialog">
 	    <form th:action="${saveURL}" th:object="${element}" method="post">
 	      <div class="modal-content">
@@ -9,8 +9,11 @@
 	        <div class="modal-body">
 	          <p>
 	          	<label for="title">Title</label>
-	          	<input size="72" type="text" th:value="*{title}" th:field="*{title}"/>
-	          	<input type="hidden" th:value="*{id}" th:field="*{id}"/>
+	          	<div th:each="item : ${allResponseSets}">
+					<input type="checkbox" th:field="*{responseSets}" th:value="${item.id}" />
+					<label th:text="${item.type}">example</label>
+				</div>
+	          	<input type="hidden" th:value="${element.id}"/>
 	          </p>
 	        </div>
 	        <div class="modal-footer">

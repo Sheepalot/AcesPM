@@ -13,24 +13,31 @@
   		</ol>
 	</div>
 	<div>
-		<a href="javascript:;" id="detailsEdit">Add response set</a>
+		<a href="javascript:;" id="addResponse">Add response set</a>
 	</div>
 	<script th:inline="javascript">
 		/*<![CDATA[*/
 		    $(function() {
 				$('#detailsEdit').click( function(e) {
+					showModal('elementDetailsModal');
+				});
+				$('#addResponse').click( function(e) {
+					showModal('addResponseModal');
+				});
+				
+				function showModal(modal) {
 					$.ajax({
 				        type: 'GET',
-				        url: 'elementDetailsModal/'+[[${element.id}]],
+				        url: modal+'/'+[[${element.id}]],
 				        dataType: "html"
 				    })
 				    .done(function (html) {
 				    	$( "#modalContent" ).html( html );
-				    	$("#elementModal").modal();
+				    	$("#"+modal).modal();
 				    }).fail(function( jqXHR, textStatus, errorThrown ) {
 				    	console.log('error');
 				    });
-				});
+		    	}
 			});
 		/*]]>*/
 	</script>

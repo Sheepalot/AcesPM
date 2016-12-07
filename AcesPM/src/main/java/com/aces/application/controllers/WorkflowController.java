@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 
 import com.aces.application.models.Node;
 import com.aces.application.models.WorkflowElement;
+import com.aces.application.repositories.ResponseSetRepository;
 import com.aces.application.services.WorkflowService;
 
 @Controller
@@ -28,6 +29,9 @@ public class WorkflowController {
 	
 	@Autowired
 	private WorkflowService workflowService;
+	
+	@Autowired
+	private ResponseSetRepository responseSetRepository;
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
@@ -45,6 +49,14 @@ public class WorkflowController {
     public String elementDetails(Model m, @PathVariable int elementId) {
 		m.addAttribute("element", workflowService.findElementById(elementId));
         return "fragments/elementDetails";
+    }
+	
+	@RequestMapping(value={"/addResponseModal/{elementId}"})
+    public String addResponseModal(Model m, @PathVariable int elementId) {
+		m.addAttribute("element", workflowService.findElementById(elementId));
+		m.addAttribute("allResponseSets", responseSetRepository.findAll());
+		m.addAttribute("saveURL", "/editDetails");
+        return "fragments/addResponseModal";
     }
 
 	@RequestMapping(value={"/elementDetailsModal/{elementId}"})
