@@ -72,4 +72,8 @@ public class WorkflowElement {
 	public void setResponseSets(Collection<ResponseSet> responseSets){
 		this.responseSets = responseSets;
 	}
+	
+	public void setParent(WorkflowElement parent){
+		this.parent = parent;
+	}
 }

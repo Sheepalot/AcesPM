@@ -32,4 +32,10 @@ public class WorkflowServiceImpl implements WorkflowService{
 		workflowRepository.save(toSave);
 		
 	}
+	
+	@Override
+	public void delete(WorkflowElement toDelete) {
+		workflowRepository.delete(toDelete);
+		
+	}
 }

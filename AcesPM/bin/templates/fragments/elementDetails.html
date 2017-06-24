@@ -8,7 +8,7 @@
 	<span th:text="(${element.responseSets.size()}>0)?'Contains the following response sets':'Currently has no response sets attached'"/>
 		<ol>
 	    	<li th:each="resp : ${element.responseSets}">
-	    		<span th:text="${resp.type}"/>
+	    		<span th:text="${resp.title}"/>
 	    	</li>
   		</ol>
 	</div>

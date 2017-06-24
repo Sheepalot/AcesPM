@@ -1,12 +1,17 @@
 package com.aces.application.controllers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import com.aces.application.models.Node;
@@ -73,6 +79,37 @@ public class WorkflowController {
 		m.addAttribute("element", newElement);
 		m.addAttribute("saveURL", "/editDetails");
         return "fragments/elementModal";
+    }
+	
+	@RequestMapping(value={"/runAudit/{rootId}"})
+    public String runAudit(Model m, @PathVariable int rootId) {	
+		//WorkflowElement root = workflowService.findElementById(rootId);
+		//m.addAttribute("element", root);
+		
+		
+		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
+		questionMap.put("Who is completing the audit?", new ArrayList<String>(Arrays.asList("Dietetics", "Other")));
+		questionMap.put("Initial screening within 24hrs of admission to hospital?", new ArrayList<String>(Arrays.asList("Yes", "No")));
+		questionMap.put("Current height present?", new ArrayList<String>(Arrays.asList("Yes", "No")));
+		questionMap.put("Current height circled?", new ArrayList<String>(Arrays.asList("Actual", "Reported", "Ulna", "N/A", "Not stated")));
+		
+		
+		m.addAttribute("questionMap", questionMap);
+        return "run";
+    }
+	
+	@RequestMapping(value={"/deleteElement/{id}"})
+	@ResponseStatus(value = HttpStatus.OK)
+    public void deleteElement(Model m, @PathVariable int id) {	
+		WorkflowElement toDelete = workflowService.findElementById(id);
+		
+		//Reparent the children
+		for(WorkflowElement child:toDelete.children){
+			child.parent = toDelete.parent;
+			workflowService.save(child);
+		}
+	
+		workflowService.delete(toDelete);
     }
 	
 	@RequestMapping(value={"/editDetails"}, method=RequestMethod.POST)

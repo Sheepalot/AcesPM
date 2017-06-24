@@ -22,15 +22,34 @@
 	$(function() {
         $.contextMenu({
             selector: '.list-group-item', 
-            callback: function(key, options) {  
+            callback: function(key, options) {
+            	var operationEndpoint;
+            	switch(key){
+            		case 'new':
+            			operationEndpoint = 'newElementModal'
+            			break;
+            		case 'delete':
+            			operationEndpoint = 'deleteElement'
+            			break;
+            	}
                 $.ajax({
 			        type: 'GET',
-			        url: 'newElementModal/'+$(this).data('elementid'),
+			        url: operationEndpoint+'/'+$(this).data('elementid'),
 			        dataType: "html"
 			    })
 			    .done(function (html) {
-			    	$( "#modalContent" ).html( html );
-			    	$("#elementDetailsModal").modal();
+			    	
+			    	switch(key){
+            		case 'new':
+            			$( "#modalContent" ).html( html );
+    			    	$("#elementDetailsModal").modal();
+            			break;
+            		case 'delete':
+            			document.cookie = 'expanded=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            			location.reload();
+            			break;
+            		}
+			    	
 			    }).fail(function( jqXHR, textStatus, errorThrown ) {
 			    	console.log('error');
 			    });

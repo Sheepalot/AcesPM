@@ -11,4 +11,5 @@ public interface WorkflowService {
 	WorkflowElement findElementById(int id);
 	
 	void save(WorkflowElement toSave);
+	void delete(WorkflowElement toDelete);
 }

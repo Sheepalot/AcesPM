@@ -8,10 +8,10 @@
 	        </div>
 	        <div class="modal-body">
 	          <p>
-	          	<label for="title">Title</label>
+	          	<label for="title">Select a response set</label>
 	          	<div th:each="item : ${allResponseSets}">
 					<input type="checkbox" th:field="*{responseSets}" th:value="${item.id}" />
-					<label th:text="${item.type}">example</label>
+					<label th:text="${item.title}">example</label>
 				</div>
 	          	<input type="hidden" th:value="${element.id}"/>
 	          </p>

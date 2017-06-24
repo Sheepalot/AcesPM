@@ -21,4 +21,6 @@ public class ResponseSet {
 	public String type;
 	
 	public String options;
+	
+	public String title;
 }

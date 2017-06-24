@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+    	<th:block th:include="fragments/header :: header"></th:block>
+        <title>Welcome</title>
+    </head>
+<body>		
+	<div class='container jumbotron'>
+	 	<div class='row'>
+	        <div class='col-xs-12' style='text-align: center;'><h2 id='question'></h2></div>
+	    </div>
+	    <hr/>
+	    <div class='row'>
+	        <div class='col-xs-12' style='text-align: center;' id='answers'></div>
+	    </div>
+	</div>
+</body>
+	<script th:inline="javascript">
+	$(function() {
+		questions = /*[[${questionMap}]]*/
+		currentQ = 0;
+		loadQuestion();
+    });
+	
+	function loadQuestion() {
+		//Insert the first question
+		var firstKey = Object.keys(questions)[currentQ];
+		$('#question').html('<button type="button" class="btn btn-info btn-back" style="margin:4px">&lt;</button>'+ firstKey );
+		
+		if(currentQ===0){
+			$('.btn-back').prop('disabled', true);
+			$('.btn-back').prop('muted', true);
+		}
+		
+		var answerDiv = $('#answers');
+		var buttonHTML = '';
+		questions[firstKey].forEach(function(element) {
+			
+			if(element.toLowerCase()==='other'){
+				buttonHTML+='<form class="form-inline" role="form"><div class="form-group"><input type="text" class="form-control" id="other" placeholder="Other"></input><button type="button" class="btn btn-other" style="margin:4px">'+element+'</button></div></form>';
+			}
+			else{
+				buttonHTML+='<button type="button" class="btn btn-primary btn-option" style="margin:4px">'+element+'</button>';
+			}
+		});
+		answerDiv.html(buttonHTML);
+		$('.btn-option').click(function() {
+			currentQ++;
+			loadQuestion();
+        });
+		$('.btn-other').click(function() {
+			currentQ++;
+			loadQuestion();
+        });
+		$('.btn-back').click(function() {
+			currentQ--;
+			loadQuestion();
+        });
+	}
+	</script>
+</html>

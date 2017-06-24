@@ -49,3 +49,6 @@ CREATE TABLE `response_link` (
   CONSTRAINT `fk_elem` FOREIGN KEY (`elem_id`) REFERENCES `workflow_element` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `fk_resp` FOREIGN KEY (`resp_id`) REFERENCES `response_set` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `acespm`.`response_set` 
+ADD COLUMN `title` NVARCHAR(512) NULL DEFAULT NULL AFTER `options`;
