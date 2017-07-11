@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +20,16 @@ import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import com.aces.application.models.Node;
+import com.aces.application.models.ResponseSet;
 import com.aces.application.models.WorkflowElement;
 import com.aces.application.repositories.ResponseSetRepository;
 import com.aces.application.services.WorkflowService;
@@ -49,6 +54,12 @@ public class WorkflowController {
 		ArrayList<WorkflowElement> elements = new ArrayList<WorkflowElement>();
 		elements.addAll(workflowService.findRootWorkflowElements());
 	    return elements.stream().map(elm -> elm.buildNodeView()).collect(Collectors.toList());
+	}
+	
+	@RequestMapping(value={"/responses"}, method=RequestMethod.GET)
+	public String responses(Model m) {
+		m.addAttribute("allResponseSets", responseSetRepository.findAll());
+	    return "responses";
 	}
 	
 	@RequestMapping(value={"/elementDetails/{elementId}"})
@@ -81,11 +92,31 @@ public class WorkflowController {
         return "fragments/elementModal";
     }
 	
+	@RequestMapping(value={"/newResponseModal"})
+    public String newResponseModal(Model m) {	
+		ResponseSet newResponseSet = new ResponseSet();
+		m.addAttribute("element", newResponseSet);
+		m.addAttribute("saveURL", "/saveNewResponseSet");
+        return "fragments/elementModal";
+    }
+	
+	@RequestMapping(value={"/saveNewResponseSet"}, method=RequestMethod.POST)
+    public String saveNewResponseSet(@Valid @ModelAttribute("element")ResponseSet edited, BindingResult result, ModelMap model) {
+		edited.setType("TEXT");
+		responseSetRepository.save(edited);
+		return "redirect:/responses";
+    }
+	
+	@RequestMapping(value={"/deleteResponse"}, method=RequestMethod.POST)
+    public String deleteResponse(@RequestParam(value="responseId") int responseId) {
+		responseSetRepository.delete(responseId);
+		return "redirect:/responses";
+    }
+	
 	@RequestMapping(value={"/runAudit/{rootId}"})
     public String runAudit(Model m, @PathVariable int rootId) {	
 		//WorkflowElement root = workflowService.findElementById(rootId);
 		//m.addAttribute("element", root);
-		
 		
 		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
 		questionMap.put("Who is completing the audit?", new ArrayList<String>(Arrays.asList("Dietetics", "Other")));
@@ -116,5 +147,10 @@ public class WorkflowController {
     public String editDetails(@Valid @ModelAttribute("element")WorkflowElement edited, BindingResult result, ModelMap model) {
 		workflowService.save(edited);
 		return "redirect:/home";
+    }
+	
+	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
+    public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
+		System.out.println("hello there");
     }
 }

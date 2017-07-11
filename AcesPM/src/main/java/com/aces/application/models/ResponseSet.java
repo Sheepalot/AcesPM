@@ -19,8 +19,28 @@ public class ResponseSet {
 	@NotNull
 	@Column(name="resp_type")
 	public String type;
-	
+
 	public String options;
 	
 	public String title;
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
+	public int getId() {
+		return id;
+	}
+	
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 }

@@ -6,6 +6,7 @@
     </head>
 <body>		
 	<div class='container jumbotron'>
+		<p><button type="button" class="btn btn-info btn-back" style="margin:4px">&lt; Previous</button></p>
 	 	<div class='row'>
 	        <div class='col-xs-12' style='text-align: center;'><h2 id='question'></h2></div>
 	    </div>
@@ -19,23 +20,30 @@
 	$(function() {
 		questions = /*[[${questionMap}]]*/
 		currentQ = 0;
+		answers = [];
+		backButton = $('.btn-back');
+		questionNumber = Object.keys(questions).length;
 		loadQuestion();
     });
 	
 	function loadQuestion() {
 		//Insert the first question
 		var firstKey = Object.keys(questions)[currentQ];
-		$('#question').html('<button type="button" class="btn btn-info btn-back" style="margin:4px">&lt;</button>'+ firstKey );
+		
+		questionDiv = $('#question');
+		answerDiv = $('#answers');
 		
 		if(currentQ===0){
-			$('.btn-back').prop('disabled', true);
-			$('.btn-back').prop('muted', true);
+			backButton.prop('disabled', true);
+		}
+		else{
+			backButton.prop('disabled', false);
 		}
 		
-		var answerDiv = $('#answers');
+		questionDiv.html(firstKey );
+		
 		var buttonHTML = '';
 		questions[firstKey].forEach(function(element) {
-			
 			if(element.toLowerCase()==='other'){
 				buttonHTML+='<form class="form-inline" role="form"><div class="form-group"><input type="text" class="form-control" id="other" placeholder="Other"></input><button type="button" class="btn btn-other" style="margin:4px">'+element+'</button></div></form>';
 			}
@@ -44,18 +52,48 @@
 			}
 		});
 		answerDiv.html(buttonHTML);
-		$('.btn-option').click(function() {
-			currentQ++;
-			loadQuestion();
+		$('.btn-option').click(function(event) {
+			completeQuestion(event.target.textContent);
         });
 		$('.btn-other').click(function() {
-			currentQ++;
-			loadQuestion();
+			completeQuestion($('#other').val());
         });
-		$('.btn-back').click(function() {
+		backButton.off('click');
+		backButton.click(function() {
 			currentQ--;
 			loadQuestion();
         });
+	}
+	
+	function completeQuestion(answer) {
+		answers[currentQ] = answer;
+		currentQ++;
+		
+		/*<![CDATA[*/
+		if(currentQ<questionNumber){
+			loadQuestion();
+		}
+		else{
+			backButton.prop('disabled', false);
+			questionDiv.html('');
+			answerDiv.html('');
+			answerDiv.html('<button type="button" class="btn btn-success btn-option" style="margin:4px" id="submit">Submit</button>');
+			
+			$('#submit').click( function(e) {
+				$.ajax({
+					async: false,
+	    	        type: 'POST',
+	    	        url: '/submitAudit',
+	    	        data:{answers},
+	    	    })
+	    	    .done(function (html) {
+	    	    	location.reload();
+	    	    }).fail(function( jqXHR, textStatus, errorThrown ) {
+	    	    	console.log('error');
+	    	    });
+			});
+		}
+	    /*]]>*/
 	}
 	</script>
 </html>

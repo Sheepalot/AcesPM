@@ -31,6 +31,5 @@ public class AuthenticationProviderConfig {
     
     public static void main(String args[]) throws Exception {
 		String cryptedPassword = new BCryptPasswordEncoder().encode("password");
-		System.out.println(cryptedPassword);
 	}
 }

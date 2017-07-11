@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
     <head>
-    	<th:block th:include="fragments/header :: header"></th:block>
+    	<div th:replace="fragments/header :: header_fragment"></div>
         <title>Welcome</title>
     </head>
     <body style="padding-top: 70px">
-    	<th:block th:include="fragments/header :: navbar"></th:block>
+    	<th:block th:include="fragments/header :: navbar(selectedTab='home')"></th:block>
     	
 	    	<div class="container-fluid">
 		        <div class="row">
