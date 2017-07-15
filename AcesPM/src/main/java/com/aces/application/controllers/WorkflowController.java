@@ -14,6 +14,10 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -33,6 +37,7 @@ import com.aces.application.models.ResponseSet;
 import com.aces.application.models.WorkflowElement;
 import com.aces.application.repositories.ResponseSetRepository;
 import com.aces.application.services.WorkflowService;
+import com.aces.application.utilities.RunningAuditManager;
 
 @Controller
 @SessionAttributes("element")
@@ -43,6 +48,7 @@ public class WorkflowController {
 	
 	@Autowired
 	private ResponseSetRepository responseSetRepository;
+	
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
@@ -90,6 +96,15 @@ public class WorkflowController {
 		m.addAttribute("element", newElement);
 		m.addAttribute("saveURL", "/editDetails");
         return "fragments/elementModal";
+    }
+	
+	@RequestMapping(value={"/startAudit/{parentId}"})
+	@ResponseStatus(value = HttpStatus.OK)
+    public void startAudit(Model m, @PathVariable int parentId) {	
+		WorkflowElement auditRoot  = workflowService.findElementById(parentId);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		RunningAuditManager.populate(((User)auth.getPrincipal()).getUsername(), auditRoot);
+		RunningAuditManager.report();
     }
 	
 	@RequestMapping(value={"/newResponseModal"})

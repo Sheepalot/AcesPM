@@ -31,6 +31,9 @@
             		case 'delete':
             			operationEndpoint = 'deleteElement'
             			break;
+            		case 'start':
+            			operationEndpoint = 'startAudit'
+            			break;
             	}
                 $.ajax({
 			        type: 'GET',
@@ -48,6 +51,8 @@
             			document.cookie = 'expanded=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             			location.reload();
             			break;
+            		case 'start':
+            			break;
             		}
 			    	
 			    }).fail(function( jqXHR, textStatus, errorThrown ) {
@@ -57,13 +62,10 @@
             },
             items: {
             	"new": {name: "New", icon: "edit"},
-                "cut": {name: "Cut", icon: "cut"},
-               copy: {name: "Copy", icon: "copy"},
-                "paste": {name: "Paste", icon: "paste"},
                 "delete": {name: "Delete", icon: "delete"},
                 "sep1": "---------",
-                "quit": {name: "Quit", icon: function(){
-                    return 'context-menu-icon context-menu-icon-quit';
+                "start": {name: "Start", icon: function(){
+                	 return 'context-menu-icon context-menu-icon-add';
                 }}
             }
         });   
