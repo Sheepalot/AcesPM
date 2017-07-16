@@ -16,9 +16,7 @@ public class RunningAuditManager {
 	
 	public static void populate(WorkflowElement parentNode, ArrayList<Question> qs){
 		Question q = new Question(parentNode.title);
-		parentNode.responseSets.forEach(e -> {q.anwsers.put(e.title, 0);
-		System.out.println(e.title);
-		});
+		parentNode.responseSets.forEach(e -> {q.anwsers.add(e.title);});
 		qs.add(q);
 		parentNode.children.forEach( e -> populate(e, qs));
 	}
@@ -36,7 +34,7 @@ public class RunningAuditManager {
 			System.out.println(e.getKey());
 			e.getValue().forEach(q -> {
 				System.out.println("  "+q.title);
-				q.anwsers.entrySet().forEach(a -> {
+				q.results.entrySet().forEach(a -> {
 					System.out.println("  "+a.getKey()+ " "+a.getValue());
 				});
 			});

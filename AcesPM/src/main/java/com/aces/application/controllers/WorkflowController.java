@@ -30,6 +30,7 @@ import com.aces.application.models.ResponseSet;
 import com.aces.application.models.WorkflowElement;
 import com.aces.application.repositories.ResponseSetRepository;
 import com.aces.application.services.WorkflowService;
+import com.aces.application.utilities.Question;
 import com.aces.application.utilities.RunningAuditManager;
 
 @Controller
@@ -138,7 +139,7 @@ public class WorkflowController {
     public String runAudit(Model m) {
 		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
 		RunningAuditManager.auditing.get(getCurrentUsername()).forEach(e -> {
-			questionMap.put(e.title, e.anwsers.entrySet().stream().map(a -> a.getKey()).collect(Collectors.toList()));
+			questionMap.put(e.title, e.anwsers);
 		});
 		m.addAttribute("questionMap", questionMap);
         return "run";
@@ -167,6 +168,19 @@ public class WorkflowController {
 	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
-		
+		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername());
+		for(int i=0; i<answers.length; i++){
+			Question current = questions.get(i);
+			Integer existingCount = current.results.get(answers[i]);
+			if(existingCount==null){
+				existingCount = 0;
+			}
+			current.results.put(answers[i], existingCount+1);
+		}
+    }
+	
+	@RequestMapping(value={"/results"})
+    public void results(Model m) {
+
     }
 }
