@@ -1,11 +1,10 @@
 package com.aces.application.utilities;
 
-import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 
 public class Question {
 	public String title;
-	public TreeMap<String, Integer> anwsers = new TreeMap<String, Integer>();
+	public LinkedHashMap<String, Integer> anwsers = new LinkedHashMap<String, Integer>();
 	
 	public Question(String title) {
 		this.title = title;

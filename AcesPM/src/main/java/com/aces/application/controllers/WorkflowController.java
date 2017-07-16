@@ -1,15 +1,10 @@
 package com.aces.application.controllers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,10 +42,18 @@ public class WorkflowController {
 	@Autowired
 	private ResponseSetRepository responseSetRepository;
 	
+	private String getCurrentUsername(){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		return ((User)auth.getPrincipal()).getUsername();
+	}
+	
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
-        return "home";
+		if(!RunningAuditManager.isRunningAudit(getCurrentUsername())){
+			return "home";
+		}
+		return "runninghome";
     }
 	
 	@RequestMapping(value={"/roots"}, method=RequestMethod.GET)
@@ -98,12 +99,17 @@ public class WorkflowController {
         return "fragments/elementModal";
     }
 	
+	@RequestMapping(value={"/cancelAudit"})
+    public String cancelAudit() {
+		RunningAuditManager.clearFor(getCurrentUsername());
+		return "redirect:/home";
+    }
+	
 	@RequestMapping(value={"/startAudit/{parentId}"})
 	@ResponseStatus(value = HttpStatus.OK)
-    public void startAudit(Model m, @PathVariable int parentId) {	
+	public void startAudit(Model m, @PathVariable int parentId) {	
 		WorkflowElement auditRoot  = workflowService.findElementById(parentId);
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		RunningAuditManager.populate(((User)auth.getPrincipal()).getUsername(), auditRoot);
+		RunningAuditManager.populate(getCurrentUsername(), auditRoot);
 		RunningAuditManager.report();
     }
 	
@@ -128,18 +134,12 @@ public class WorkflowController {
 		return "redirect:/responses";
     }
 	
-	@RequestMapping(value={"/runAudit/{rootId}"})
-    public String runAudit(Model m, @PathVariable int rootId) {	
-		//WorkflowElement root = workflowService.findElementById(rootId);
-		//m.addAttribute("element", root);
-		
+	@RequestMapping(value={"/runAudit"})
+    public String runAudit(Model m) {
 		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
-		questionMap.put("Who is completing the audit?", new ArrayList<String>(Arrays.asList("Dietetics", "Other")));
-		questionMap.put("Initial screening within 24hrs of admission to hospital?", new ArrayList<String>(Arrays.asList("Yes", "No")));
-		questionMap.put("Current height present?", new ArrayList<String>(Arrays.asList("Yes", "No")));
-		questionMap.put("Current height circled?", new ArrayList<String>(Arrays.asList("Actual", "Reported", "Ulna", "N/A", "Not stated")));
-		
-		
+		RunningAuditManager.auditing.get(getCurrentUsername()).forEach(e -> {
+			questionMap.put(e.title, e.anwsers.entrySet().stream().map(a -> a.getKey()).collect(Collectors.toList()));
+		});
 		m.addAttribute("questionMap", questionMap);
         return "run";
     }
@@ -149,7 +149,7 @@ public class WorkflowController {
     public void deleteElement(Model m, @PathVariable int id) {	
 		WorkflowElement toDelete = workflowService.findElementById(id);
 		
-		//Reparent the children
+		//Re-parent the children
 		for(WorkflowElement child:toDelete.children){
 			child.parent = toDelete.parent;
 			workflowService.save(child);
@@ -165,7 +165,8 @@ public class WorkflowController {
     }
 	
 	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
-		System.out.println("hello there");
+		
     }
 }

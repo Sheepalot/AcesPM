@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<div th:replace="fragments/header :: header_fragment"></div>
+<title>Welcome</title>
+</head>
+<body>
+	<div class="jumbotron" style="background: transparent !important">
+		<div class="container">
+			<div class="alert alert-danger">Your are already running an
+				audit. If you cancel the current audit, all data collected will be
+				lost </div>
+				<div class="form-group"><a class="btn btn-danger" href="/cancelAudit">Cancel Audit</a>
+				<a class="btn btn-primary" href="/runAudit">Add Data</a>
+				<a class="btn btn-success" href="/">See Results</a></div>
+				
+		</div>
+	</div>
+
+</body>
+</html>
