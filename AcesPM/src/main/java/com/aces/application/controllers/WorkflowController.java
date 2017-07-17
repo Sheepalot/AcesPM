@@ -1,6 +1,7 @@
 package com.aces.application.controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +48,6 @@ public class WorkflowController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		return ((User)auth.getPrincipal()).getUsername();
 	}
-	
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
@@ -150,6 +150,11 @@ public class WorkflowController {
     public void deleteElement(Model m, @PathVariable int id) {	
 		WorkflowElement toDelete = workflowService.findElementById(id);
 		
+		//Can't delete roots for now
+		if(toDelete.parent==null){
+			return;
+		}
+		
 		//Re-parent the children
 		for(WorkflowElement child:toDelete.children){
 			child.parent = toDelete.parent;
@@ -168,10 +173,10 @@ public class WorkflowController {
 	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
-		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername());
+		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername()+ " "+answers[0]);
 		
 		//No school like old school for loop, index is important to us here
-		for(int i=0; i<answers.length; i++){
+		for(int i=1; i<answers.length; i++){
 			Question current = questions.get(i);
 			Integer existingCount = current.results.get(answers[i]);
 			if(existingCount==null){
@@ -183,13 +188,13 @@ public class WorkflowController {
 	
 	@RequestMapping(value={"/results"})
     public String results(Model m) {
-		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername());
-		m.addAttribute("questions",questions);
-		
-		//Nothing currently running then home we go
-		if(questions==null){
-			return "redirect:/home";
-		}
+		LinkedHashMap<String, List<Question>> results = new LinkedHashMap<String, List<Question>>();
+		RunningAuditManager.auditing.entrySet().forEach(e -> {
+			if(e.getKey().startsWith(getCurrentUsername()) && e.getKey().length() > getCurrentUsername().length()){
+				results.put(e.getKey().split(" ")[1], e.getValue().subList(1, e.getValue().size()));
+			}
+		});
+		m.addAttribute("results",results);
 		return "results";
     }
 }

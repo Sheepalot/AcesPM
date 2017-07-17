@@ -7,7 +7,10 @@
 <title>Welcome</title>
 </head>
 <body>
-	<div class="container">
+
+
+	<div th:each="entry : ${results}" class="container">
+	<h2 th:text="${entry.key}"></h2>
 	<table class="table table-striped">
     <thead>
       <tr>
@@ -16,7 +19,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr th:each="question : ${questions}">
+      <tr th:each="question : ${entry.value}">
    		<td th:text="${question.title}"></td>
    		<td th:utext="${question.buildSummary()}"></td>
 		</tr>

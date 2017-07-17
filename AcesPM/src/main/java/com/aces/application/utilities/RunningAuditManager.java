@@ -10,8 +10,14 @@ public class RunningAuditManager {
 	
 	public static void populate(String userName, WorkflowElement parentNode){
 		ArrayList<Question> qs = new ArrayList<Question>();
-		parentNode.children.forEach( e -> populate(e, qs));
+		populate(parentNode, qs);
 		auditing.put(userName, qs);
+		parentNode.getResponseSets().forEach(r -> {
+			ArrayList<Question> dupes = new ArrayList<Question>();
+			populate(parentNode, dupes);
+			auditing.put(userName+" "+r.getTitle(), dupes);
+		});
+		auditing.put(userName, new ArrayList<Question>(qs));
 	}
 	
 	public static void populate(WorkflowElement parentNode, ArrayList<Question> qs){
@@ -26,7 +32,15 @@ public class RunningAuditManager {
 	}
 	
 	public static void clearFor(String username){
-		auditing.remove(username);
+		ArrayList<String> keysToRemove = new ArrayList<String>();
+		auditing.keySet().forEach(k ->{
+			if(k.startsWith(username)){
+				keysToRemove.add(k);
+			}
+		});
+		keysToRemove.forEach(k -> {
+			auditing.remove(k);
+		});
 	}
 	
 	public static void report(){
