@@ -169,6 +169,8 @@ public class WorkflowController {
 	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
 		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername());
+		
+		//No school like old school for loop, index is important to us here
 		for(int i=0; i<answers.length; i++){
 			Question current = questions.get(i);
 			Integer existingCount = current.results.get(answers[i]);
@@ -180,7 +182,14 @@ public class WorkflowController {
     }
 	
 	@RequestMapping(value={"/results"})
-    public void results(Model m) {
-
+    public String results(Model m) {
+		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername());
+		m.addAttribute("questions",questions);
+		
+		//Nothing currently running then home we go
+		if(questions==null){
+			return "redirect:/home";
+		}
+		return "results";
     }
 }
