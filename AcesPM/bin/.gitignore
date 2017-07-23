@@ -1,3 +1,5 @@
-/templates/
+/application.properties
 /com/
+/sql.sql
 /static/
+/templates/

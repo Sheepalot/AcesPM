@@ -1,7 +1,6 @@
 package com.aces.application.controllers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,13 +25,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
+import com.aces.application.models.Memory;
 import com.aces.application.models.Node;
 import com.aces.application.models.ResponseSet;
 import com.aces.application.models.WorkflowElement;
 import com.aces.application.repositories.ResponseSetRepository;
+import com.aces.application.services.MemoryService;
 import com.aces.application.services.WorkflowService;
+import com.aces.application.utilities.AuditManagerHolder;
 import com.aces.application.utilities.Question;
-import com.aces.application.utilities.RunningAuditManager;
 
 @Controller
 @SessionAttributes("element")
@@ -44,6 +45,9 @@ public class WorkflowController {
 	@Autowired
 	private ResponseSetRepository responseSetRepository;
 	
+	@Autowired
+	private MemoryService memoryService;
+	
 	private String getCurrentUsername(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		return ((User)auth.getPrincipal()).getUsername();
@@ -51,7 +55,7 @@ public class WorkflowController {
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
-		if(!RunningAuditManager.isRunningAudit(getCurrentUsername())){
+		if(!AuditManagerHolder.getManager().isRunningAudit(getCurrentUsername())){
 			return "home";
 		}
 		return "runninghome";
@@ -102,7 +106,7 @@ public class WorkflowController {
 	
 	@RequestMapping(value={"/cancelAudit"})
     public String cancelAudit() {
-		RunningAuditManager.clearFor(getCurrentUsername());
+		AuditManagerHolder.getManager().clearFor(getCurrentUsername());
 		return "redirect:/home";
     }
 	
@@ -110,8 +114,8 @@ public class WorkflowController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public void startAudit(Model m, @PathVariable int parentId) {	
 		WorkflowElement auditRoot  = workflowService.findElementById(parentId);
-		RunningAuditManager.populate(getCurrentUsername(), auditRoot);
-		RunningAuditManager.report();
+		AuditManagerHolder.getManager().populate(getCurrentUsername(), auditRoot);
+		AuditManagerHolder.getManager().report();
     }
 	
 	@RequestMapping(value={"/newResponseModal"})
@@ -138,7 +142,7 @@ public class WorkflowController {
 	@RequestMapping(value={"/runAudit"})
     public String runAudit(Model m) {
 		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
-		RunningAuditManager.auditing.get(getCurrentUsername()).forEach(e -> {
+		AuditManagerHolder.getManager().auditing.get(getCurrentUsername()).forEach(e -> {
 			questionMap.put(e.title, e.anwsers);
 		});
 		m.addAttribute("questionMap", questionMap);
@@ -173,23 +177,17 @@ public class WorkflowController {
 	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
-		ArrayList<Question> questions = RunningAuditManager.auditing.get(getCurrentUsername()+ " "+answers[0]);
+		AuditManagerHolder.getManager().submitAnswers(getCurrentUsername(), answers);
 		
-		//No school like old school for loop, index is important to us here
-		for(int i=1; i<answers.length; i++){
-			Question current = questions.get(i);
-			Integer existingCount = current.results.get(answers[i]);
-			if(existingCount==null){
-				existingCount = 0;
-			}
-			current.results.put(answers[i], existingCount+1);
-		}
+		Memory m = memoryService.get();
+		m.setManager(AuditManagerHolder.getManager());
+		memoryService.save(m);
     }
 	
 	@RequestMapping(value={"/results"})
     public String results(Model m) {
 		LinkedHashMap<String, List<Question>> results = new LinkedHashMap<String, List<Question>>();
-		RunningAuditManager.auditing.entrySet().forEach(e -> {
+		AuditManagerHolder.getManager().auditing.entrySet().forEach(e -> {
 			if(e.getKey().startsWith(getCurrentUsername()) && e.getKey().length() > getCurrentUsername().length()){
 				results.put(e.getKey().split(" ")[1], e.getValue().subList(1, e.getValue().size()));
 			}

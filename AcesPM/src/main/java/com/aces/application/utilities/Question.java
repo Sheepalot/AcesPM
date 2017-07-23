@@ -1,10 +1,11 @@
 package com.aces.application.utilities;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-public class Question {
+public class Question implements Serializable{
 	public String title;
 	public ArrayList<String> anwsers = new ArrayList<String>();
 	public LinkedHashMap<String, Integer> results = new LinkedHashMap<String, Integer>();

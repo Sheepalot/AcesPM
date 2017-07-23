@@ -52,3 +52,8 @@ CREATE TABLE `response_link` (
 
 ALTER TABLE `acespm`.`response_set` 
 ADD COLUMN `title` NVARCHAR(512) NULL DEFAULT NULL AFTER `options`;
+
+CREATE TABLE `acespm`.`memory` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `memory` BLOB NULL,
+  PRIMARY KEY (`id`));

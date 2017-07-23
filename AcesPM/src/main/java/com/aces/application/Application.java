@@ -6,9 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
+import com.aces.application.utilities.AuditManagerHolder;
+import com.aces.application.utilities.RunningAuditManager;
+
 @SpringBootApplication
 
-//@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class,HibernateJpaAutoConfiguration.class})
 public class Application {
 
 	public static void main(String[] args) throws Exception {
