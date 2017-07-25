@@ -7,18 +7,22 @@ import java.util.HashMap;
 import com.aces.application.models.WorkflowElement;
 
 public class RunningAuditManager implements Serializable{
+
+	//Ultimately this will be replaced by some user (or group of users) identifier
+	public static final String CURRENT_AUDIT = "CURRENT_AUDIT";
+	
 	public HashMap<String, ArrayList<Question>> auditing = new HashMap<String, ArrayList<Question>>();
 	
-	public void populate(String userName, WorkflowElement parentNode){
+	public void populate(WorkflowElement parentNode){
 		ArrayList<Question> qs = new ArrayList<Question>();
 		populate(parentNode, qs);
-		auditing.put(userName, qs);
+		auditing.put(CURRENT_AUDIT, qs);
 		parentNode.getResponseSets().forEach(r -> {
 			ArrayList<Question> dupes = new ArrayList<Question>();
 			populate(parentNode, dupes);
-			auditing.put(userName+" "+r.getTitle(), dupes);
+			auditing.put(CURRENT_AUDIT+" "+r.getTitle(), dupes);
 		});
-		auditing.put(userName, new ArrayList<Question>(qs));
+		auditing.put(CURRENT_AUDIT, new ArrayList<Question>(qs));
 	}
 	
 	public void populate(WorkflowElement parentNode, ArrayList<Question> qs){
@@ -28,14 +32,14 @@ public class RunningAuditManager implements Serializable{
 		parentNode.children.forEach( e -> populate(e, qs));
 	}
 	
-	public boolean isRunningAudit(String username){
-		return auditing.containsKey(username);
+	public boolean isRunningAudit(){
+		return auditing.containsKey(CURRENT_AUDIT);
 	}
 	
-	public void clearFor(String username){
+	public void clear(){
 		ArrayList<String> keysToRemove = new ArrayList<String>();
 		auditing.keySet().forEach(k ->{
-			if(k.startsWith(username)){
+			if(k.startsWith(CURRENT_AUDIT)){
 				keysToRemove.add(k);
 			}
 		});
@@ -44,8 +48,8 @@ public class RunningAuditManager implements Serializable{
 		});
 	}
 	
-	public void submitAnswers(String username, String[] answers){
-		ArrayList<Question> questions = auditing.get(username+ " "+answers[0]);
+	public void submitAnswers(String[] answers){
+		ArrayList<Question> questions = auditing.get(CURRENT_AUDIT+ " "+answers[0]);
 		
 		//No school like old school for loop, index is important to us here
 		for(int i=1; i<answers.length; i++){
@@ -56,17 +60,5 @@ public class RunningAuditManager implements Serializable{
 			}
 			current.results.put(answers[i], existingCount+1);
 		}
-	}
-	
-	public void report(){
-		auditing.entrySet().forEach(e -> {
-			System.out.println(e.getKey());
-			e.getValue().forEach(q -> {
-				System.out.println("  "+q.title);
-				q.results.entrySet().forEach(a -> {
-					System.out.println("  "+a.getKey()+ " "+a.getValue());
-				});
-			});
-		});
 	}
 }

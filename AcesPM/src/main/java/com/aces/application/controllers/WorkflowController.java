@@ -55,12 +55,16 @@ public class WorkflowController {
 	
 	@RequestMapping(value={"/", "/home"})
     public String home() {
-		if(!AuditManagerHolder.getManager().isRunningAudit(getCurrentUsername())){
+		if(!AuditManagerHolder.getManager().isRunningAudit()){
 			return "home";
 		}
 		return "runninghome";
     }
 	
+	/**
+	 * Grab all the top level (root) nodes
+	 * @return
+	 */
 	@RequestMapping(value={"/roots"}, method=RequestMethod.GET)
 	public @ResponseBody List<Node> roots() {
 		ArrayList<WorkflowElement> elements = new ArrayList<WorkflowElement>();
@@ -68,18 +72,35 @@ public class WorkflowController {
 	    return elements.stream().map(elm -> elm.buildNodeView()).collect(Collectors.toList());
 	}
 	
+	/**
+	 * Load a list of all possible responses (answers)
+	 * @param m
+	 * @return
+	 */
 	@RequestMapping(value={"/responses"}, method=RequestMethod.GET)
 	public String responses(Model m) {
 		m.addAttribute("allResponseSets", responseSetRepository.findAll());
 	    return "responses";
 	}
 	
+	/**
+	 * Load and element(question) for displaying its details
+	 * @param m
+	 * @param elementId
+	 * @return
+	 */
 	@RequestMapping(value={"/elementDetails/{elementId}"})
     public String elementDetails(Model m, @PathVariable int elementId) {
 		m.addAttribute("element", workflowService.findElementById(elementId));
         return "fragments/elementDetails";
     }
 	
+	/**
+	 * Provide a modal for adding a response to a question
+	 * @param m
+	 * @param elementId
+	 * @return
+	 */
 	@RequestMapping(value={"/addResponseModal/{elementId}"})
     public String addResponseModal(Model m, @PathVariable int elementId) {
 		m.addAttribute("element", workflowService.findElementById(elementId));
@@ -88,6 +109,12 @@ public class WorkflowController {
         return "fragments/addResponseModal";
     }
 
+	/**
+	 * provide a modal for editing a question's details 
+	 * @param m
+	 * @param elementId
+	 * @return
+	 */
 	@RequestMapping(value={"/elementDetailsModal/{elementId}"})
     public String elementDetailsModal(Model m, @PathVariable int elementId) {
 		m.addAttribute("element", workflowService.findElementById(elementId));
@@ -95,6 +122,25 @@ public class WorkflowController {
         return "fragments/elementModal";
     }
 	
+	/**
+	 * Save edited question details
+	 * @param edited
+	 * @param result
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping(value={"/editDetails"}, method=RequestMethod.POST)
+    public String editDetails(@Valid @ModelAttribute("element")WorkflowElement edited, BindingResult result, ModelMap model) {
+		workflowService.save(edited);
+		return "redirect:/home";
+    }
+	
+	/**
+	 * Provide a modal for adding a new question
+	 * @param m
+	 * @param parentId
+	 * @return
+	 */
 	@RequestMapping(value={"/newElementModal/{parentId}"})
     public String newElementModal(Model m, @PathVariable int parentId) {	
 		WorkflowElement newElement = new WorkflowElement();
@@ -104,51 +150,11 @@ public class WorkflowController {
         return "fragments/elementModal";
     }
 	
-	@RequestMapping(value={"/cancelAudit"})
-    public String cancelAudit() {
-		AuditManagerHolder.getManager().clearFor(getCurrentUsername());
-		return "redirect:/home";
-    }
-	
-	@RequestMapping(value={"/startAudit/{parentId}"})
-	@ResponseStatus(value = HttpStatus.OK)
-	public void startAudit(Model m, @PathVariable int parentId) {	
-		WorkflowElement auditRoot  = workflowService.findElementById(parentId);
-		AuditManagerHolder.getManager().populate(getCurrentUsername(), auditRoot);
-		AuditManagerHolder.getManager().report();
-    }
-	
-	@RequestMapping(value={"/newResponseModal"})
-    public String newResponseModal(Model m) {	
-		ResponseSet newResponseSet = new ResponseSet();
-		m.addAttribute("element", newResponseSet);
-		m.addAttribute("saveURL", "/saveNewResponseSet");
-        return "fragments/elementModal";
-    }
-	
-	@RequestMapping(value={"/saveNewResponseSet"}, method=RequestMethod.POST)
-    public String saveNewResponseSet(@Valid @ModelAttribute("element")ResponseSet edited, BindingResult result, ModelMap model) {
-		edited.setType("TEXT");
-		responseSetRepository.save(edited);
-		return "redirect:/responses";
-    }
-	
-	@RequestMapping(value={"/deleteResponse"}, method=RequestMethod.POST)
-    public String deleteResponse(@RequestParam(value="responseId") int responseId) {
-		responseSetRepository.delete(responseId);
-		return "redirect:/responses";
-    }
-	
-	@RequestMapping(value={"/runAudit"})
-    public String runAudit(Model m) {
-		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
-		AuditManagerHolder.getManager().auditing.get(getCurrentUsername()).forEach(e -> {
-			questionMap.put(e.title, e.anwsers);
-		});
-		m.addAttribute("questionMap", questionMap);
-        return "run";
-    }
-	
+	/**
+	 * Delete a element (question)
+	 * @param m
+	 * @param id
+	 */
 	@RequestMapping(value={"/deleteElement/{id}"})
 	@ResponseStatus(value = HttpStatus.OK)
     public void deleteElement(Model m, @PathVariable int id) {	
@@ -168,22 +174,101 @@ public class WorkflowController {
 		workflowService.delete(toDelete);
     }
 	
-	@RequestMapping(value={"/editDetails"}, method=RequestMethod.POST)
-    public String editDetails(@Valid @ModelAttribute("element")WorkflowElement edited, BindingResult result, ModelMap model) {
-		workflowService.save(edited);
+	/**
+	 * Clear the currently running audit
+	 * @return
+	 */
+	@RequestMapping(value={"/cancelAudit"})
+    public String cancelAudit() {
+		AuditManagerHolder.getManager().clear();
 		return "redirect:/home";
     }
 	
+	/**
+	 * Start a new audit from a given parent question
+	 * @param m
+	 * @param parentId
+	 */
+	@RequestMapping(value={"/startAudit/{parentId}"})
+	@ResponseStatus(value = HttpStatus.OK)
+	public void startAudit(Model m, @PathVariable int parentId) {	
+		WorkflowElement auditRoot  = workflowService.findElementById(parentId);
+		AuditManagerHolder.getManager().populate(auditRoot);
+    }
+	
+	/**
+	 * Display a modal for adding a new response (answer)
+	 * @param m
+	 * @return
+	 */
+	@RequestMapping(value={"/newResponseModal"})
+    public String newResponseModal(Model m) {	
+		ResponseSet newResponseSet = new ResponseSet();
+		m.addAttribute("element", newResponseSet);
+		m.addAttribute("saveURL", "/saveNewResponseSet");
+        return "fragments/elementModal";
+    }
+	
+	/**
+	 * Save a new possible answer to the database
+	 * @param edited
+	 * @param result
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping(value={"/saveNewResponseSet"}, method=RequestMethod.POST)
+    public String saveNewResponseSet(@Valid @ModelAttribute("element")ResponseSet edited, BindingResult result, ModelMap model) {
+		edited.setType("TEXT");
+		responseSetRepository.save(edited);
+		return "redirect:/responses";
+    }
+	
+	/**
+	 * Delete a possible answer
+	 * @param responseId
+	 * @return
+	 */
+	@RequestMapping(value={"/deleteResponse"}, method=RequestMethod.POST)
+    public String deleteResponse(@RequestParam(value="responseId") int responseId) {
+		responseSetRepository.delete(responseId);
+		return "redirect:/responses";
+    }
+	
+	/**
+	 * Start providing data for an audit
+	 * @param m
+	 * @return
+	 */
+	@RequestMapping(value={"/runAudit"})
+    public String runAudit(Model m) {
+		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
+		AuditManagerHolder.getManager().auditing.get(getCurrentUsername()).forEach(e -> {
+			questionMap.put(e.title, e.anwsers);
+		});
+		m.addAttribute("questionMap", questionMap);
+        return "run";
+    }
+	
+	
+	/**
+	 * Submit a single entry for an audit
+	 * @param answers
+	 */
 	@RequestMapping(value={"/submitAudit"}, method=RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
     public void submitAudit(@RequestParam(value="answers[]") String[] answers) {
-		AuditManagerHolder.getManager().submitAnswers(getCurrentUsername(), answers);
+		AuditManagerHolder.getManager().submitAnswers(answers);
 		
 		Memory m = memoryService.get();
 		m.setManager(AuditManagerHolder.getManager());
 		memoryService.save(m);
     }
 	
+	/**
+	 * Display the results for the audit currently in progress
+	 * @param m
+	 * @return
+	 */
 	@RequestMapping(value={"/results"})
     public String results(Model m) {
 		LinkedHashMap<String, List<Question>> results = new LinkedHashMap<String, List<Question>>();
