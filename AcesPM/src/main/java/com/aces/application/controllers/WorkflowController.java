@@ -48,16 +48,37 @@ public class WorkflowController {
 	@Autowired
 	private MemoryService memoryService;
 	
+	/**
+	 * Get current user authentication details
+	 * @return
+	 */
+	private Authentication getCurrentUser(){
+		return SecurityContextHolder.getContext().getAuthentication();
+	}
+	
+	/**
+	 * Get the current suer name
+	 * @return
+	 */
 	private String getCurrentUsername(){
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Authentication auth = getCurrentUser();
 		return ((User)auth.getPrincipal()).getUsername();
 	}
 	
+	/**
+	 * Does the current user have the admin role
+	 * @return
+	 */
+	private boolean isAdmin(){
+		return getCurrentUser().getAuthorities().contains("ROLE_ADMIN");
+	}
+	
 	@RequestMapping(value={"/", "/home"})
-    public String home() {
+    public String home(Model m) {
 		if(!AuditManagerHolder.getManager().isRunningAudit()){
 			return "home";
 		}
+		m.addAttribute("isAdmin", isAdmin());
 		return "runninghome";
     }
 	
