@@ -12,12 +12,12 @@
 			<div class="alert alert-danger">You're currently running an
 				audit. If you cancel the current audit, all data collected will be
 				lost </div>
-				<div class="form-group"><a class="btn btn-danger" href="/cancelAudit">Cancel Audit</a>
-				<a class="btn btn-primary" href="/runAudit">Add Data</a>
-				<a class="btn btn-success" href="/results">See Results</a></div>
-				
+				<div class="form-group">
+				<a class="btn btn-success" href="/results">See Results</a>
+				<a class="btn btn-danger" href="/cancelAudit" onclick="return confirm('Are you really sure you want to cancel this audit?');">Cancel Audit</a>
+				<a class="btn btn-info" href="/logout">logout</a>
+				</div>
 		</div>
 	</div>
-
 </body>
 </html>

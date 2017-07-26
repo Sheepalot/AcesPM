@@ -3,6 +3,8 @@ package com.aces.application.utilities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.aces.application.models.WorkflowElement;
 
@@ -45,6 +47,18 @@ public class RunningAuditManager implements Serializable{
 		});
 		keysToRemove.forEach(k -> {
 			auditing.remove(k);
+		});
+	}
+	
+	public ArrayList<Question> getQuestions(){
+		return auditing.get(CURRENT_AUDIT);
+	}
+	
+	public void prepareResults(LinkedHashMap<String, List<Question>> results){
+		auditing.entrySet().forEach(e -> {
+			if(e.getKey().startsWith(CURRENT_AUDIT) && e.getKey().length() > CURRENT_AUDIT.length()){
+				results.put(e.getKey().split(" ")[1], e.getValue().subList(1, e.getValue().size()));
+			}
 		});
 	}
 	

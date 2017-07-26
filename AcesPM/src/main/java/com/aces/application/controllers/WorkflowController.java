@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
@@ -70,16 +71,40 @@ public class WorkflowController {
 	 * @return
 	 */
 	private boolean isAdmin(){
-		return getCurrentUser().getAuthorities().contains("ROLE_ADMIN");
+		return getCurrentUser().getAuthorities().stream().filter(a -> a.getAuthority().equals("ROLE_ADMIN")).findAny().isPresent();
 	}
-	
+
+	/**
+	 * Home is different based on whether you're an admin or there's already an audit running
+	 * @param m
+	 * @return
+	 */
 	@RequestMapping(value={"/", "/home"})
     public String home(Model m) {
-		if(!AuditManagerHolder.getManager().isRunningAudit()){
-			return "home";
+		
+		boolean isAdmin = isAdmin();
+		m.addAttribute("isAdmin",isAdmin);
+		if(isAdmin){
+			//If you're an admin and there is no audit running you get to modify things and possible start a new audit
+			if(!AuditManagerHolder.getManager().isRunningAudit()){
+				return "home";
+			}
+			else{
+				//Otherwise you can add data, cancel or view the result
+				return "runninghome";
+			}
 		}
-		m.addAttribute("isAdmin", isAdmin());
-		return "runninghome";
+		
+		//...so you're not an Admin
+		else{
+			//If there are no audits running you can't do squat
+			if(!AuditManagerHolder.getManager().isRunningAudit()){
+				return "nothingrunninghome";
+			}
+		}
+		
+		//Got this far as a non-admin, jump straight into running the audit
+		return "redirect:/home";
     }
 	
 	/**
@@ -263,7 +288,7 @@ public class WorkflowController {
 	@RequestMapping(value={"/runAudit"})
     public String runAudit(Model m) {
 		LinkedHashMap<String, List<String>> questionMap = new LinkedHashMap<String, List<String>>();
-		AuditManagerHolder.getManager().auditing.get(getCurrentUsername()).forEach(e -> {
+		AuditManagerHolder.getManager().getQuestions().forEach(e -> {
 			questionMap.put(e.title, e.anwsers);
 		});
 		m.addAttribute("questionMap", questionMap);
@@ -293,11 +318,7 @@ public class WorkflowController {
 	@RequestMapping(value={"/results"})
     public String results(Model m) {
 		LinkedHashMap<String, List<Question>> results = new LinkedHashMap<String, List<Question>>();
-		AuditManagerHolder.getManager().auditing.entrySet().forEach(e -> {
-			if(e.getKey().startsWith(getCurrentUsername()) && e.getKey().length() > getCurrentUsername().length()){
-				results.put(e.getKey().split(" ")[1], e.getValue().subList(1, e.getValue().size()));
-			}
-		});
+		AuditManagerHolder.getManager().prepareResults(results);
 		m.addAttribute("results",results);
 		return "results";
     }
