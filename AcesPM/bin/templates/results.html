@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<div th:replace="fragments/header :: header_fragment"></div>
+<title>Welcome</title>
+</head>
+<body>
+
+
+	<div th:each="entry : ${results}" class="container">
+	<h2 th:text="${entry.key}"></h2>
+	<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Question</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="question : ${entry.value}">
+   		<td th:text="${question.title}"></td>
+   		<td th:utext="${question.buildSummary()}"></td>
+		</tr>
+    </tbody>
+  </table>
+  </div>
+</body>
+</html>

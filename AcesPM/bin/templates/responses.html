@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<div th:replace="fragments/header :: header_fragment"></div>
+<title>Welcome</title>
+</head>
+<body style="padding-top: 70px">
+	<th:block
+		th:include="fragments/header :: navbar(selectedTab='responses')"></th:block>
+
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-12">
+				<span th:text="(${allResponseSets.size()}==0)?'Currently there are no responses':''" />
+				<ul>
+					<li th:each="resp : ${allResponseSets}"><span th:text="${resp.title}" /> <a href="javascript:;" th:attr="data-el_id=${resp.getId()}" class="deleteResponse">delete</a></li>
+				</ul>
+			</div>
+			<div class="col-sm-12">
+			<a href="javascript:;" id="addResponse">Add a response</a>
+		</div>
+		</div>
+	</div>
+</body>
+<script>
+/*<![CDATA[*/
+$(function() {
+	
+	$( ".deleteResponse" ).each(function() {
+		console.log('boogallooo');
+	    $(this).on("click", function(){
+			$.ajax({
+				async: false,
+    	        type: 'POST',
+    	        url: '/deleteResponse',
+    	        data:{"responseId" : $(this).attr("data-el_id")},
+    	    })
+    	    .done(function (html) {
+    	    	location.reload();
+    	    }).fail(function( jqXHR, textStatus, errorThrown ) {
+    	    	console.log('error');
+    	    });
+	    });
+	});
+	
+	$('#addResponse').click( function(e) {
+		showModal('newResponseModal', 'elementDetailsModal');
+	});
+	
+	function showModal(modalURL, modalID) {
+		$.ajax({
+	        type: 'GET',
+	        url: modalURL,
+	        dataType: "html"
+	    })
+	    .done(function (html) {
+	    	$( "#modalContent" ).html( html );
+	    	$("#"+modalID).modal();
+	    }).fail(function( jqXHR, textStatus, errorThrown ) {
+	    	console.log('error');
+	    });
+	}
+});
+/*]]>*/
+</script>
+</html>
